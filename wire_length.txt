@@ -1,2 +1,0 @@
-before spreading: 1.940148
-after spreading: 2.154505

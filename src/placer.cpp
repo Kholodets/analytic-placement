@@ -170,12 +170,14 @@ int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, float a, flo
 		U[yid * 5 + xid] += 1.0f / ar;
 	}
 
+	/*
 	for (int i = 0; i < 25; i++) {
 		printf("%f, ", U[i]);
 		if (i % 5 == 4) {
 			printf("\n");
 		}
 	}
+	*/
 	
 
 	//perform x spreading
@@ -185,36 +187,36 @@ int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, float a, flo
 	xnb[0] = 0;
 	xnb[5] = max_x;
 
-	float xnb_save[6 * 5];
 
-	printf("xob: ");
+
+	//printf("xob: ");
 	for (int i = 0; i < 6; i++) {
 		xob[i] = i * (max_x / 5.0f);
-		printf("%f, ", xob[i]);
+		//printf("%f, ", xob[i]);
 	}
-	printf("\n");
+	//printf("\n");
+	
 
 	for (int i = 0; i < 5; i++) {
-		printf("xnb: 0, ");
-		xnb_save[i * 6] = 0;
-		xnb_save[i*6 + 5] = max_x;
+		//printf("xnb: 0, ");
 		for (int j = 1; j < 5; j++) {
+			//compute new x boundaries for current row
 			xnb[j] = ( xob[j-1]*(U[i * 5 + j] + DELTA) + xob[j+1]*(U[i * 5 + j - 1] + DELTA) ) 
 				/ ( U[i * 5 + j - 1] + U[i * 5 + j] + 2 * DELTA );
-			printf("%f, ", xnb[j]);
-			xnb_save[i * 6 + j] = xnb[j];
+			//printf("%f, ", xnb[j]);
 		}
-		printf(", %f\n", xnb[5]);
+		//printf(", %f\n", xnb[5]);
 
 		for (int j = 0; j < n; j++) {
-			printf("i = %d, oy[j] = %f\n", i, oy[j]);
+			//printf("i = %d, oy[j] = %f\n", i, oy[j]);
+			//move this cell if its in this row
 			if ( ((int)(5.0f * oy[j] / max_y)) == i ) {
 				float xj = ox[j];
 				int ui = ((int) (5.0f * xj / max_x)) + 1;
 				float xjp = (xnb[ui] * (xj - xob[ui - 1]) + xnb[ui - 1] * (xob[ui] - xj)) 
 					/ (xob[ui] - xob[ui - 1]);
 				nx[j] = xj + a * (xjp - xj);
-				printf("xj %f, xjp %f, nx %f\n", xj, xjp, nx[j]);
+				//printf("xj %f, xjp %f, nx %f\n", xj, xjp, nx[j]);
 			}
 		}
 
@@ -233,29 +235,31 @@ int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, float a, flo
 		yob[i] = i * (max_y / 5.0f);
 
 	for (int i = 0; i < 5; i++) {
-		printf("ynb: %f, ", ynb[0]);
+		//printf("ynb: %f, ", ynb[0]);
 		for (int j = 1; j < 5; j++) {
+			//compute new y boundaries for current columb
 			ynb[j] = ( yob[j-1]*(U[j * 5 + i] + DELTA) + yob[j+1]*(U[(j-1) * 5 + i ] + DELTA) ) 
 				/ ( U[(j-1) * 5 + i] + U[j * 5 + i] + 2 * DELTA );
-			printf("%f, ", ynb[j]);
+			//printf("%f, ", ynb[j]);
 		}
-		printf("%f\n", ynb[5]);
+		//printf("%f\n", ynb[5]);
 
 		for (int j = 0; j < n; j++) {
-				float yj = oy[j];
+			//move this cell if its in this column
+			float yj = oy[j];
 			int ui = ((int) (5.0f * yj / max_y));
-			if ( ((int)(5.0f * nx[j] / max_x)) == i /*nx[j] >= xnb_save[ui * 6 + i] && nx[j] <= xnb_save[ui * 6 + i + 1] */) {
+			if ( ((int)(5.0f * ox[j] / max_x)) == i /*nx[j] >= xnb_save[ui * 6 + i] && nx[j] <= xnb_save[ui * 6 + i + 1] */) {
 				ui++;
 				float yjp = (ynb[ui] * (yj - yob[ui - 1]) + ynb[ui - 1] * (yob[ui] - yj)) 
 					/ (yob[ui] - yob[ui - 1]);
 				ny[j] = yj + a * (yjp - yj);
-				printf("yj %f, yjp %f, ny %f\n", yj, yjp, ny[j]);
+				//printf("yj %f, yjp %f, ny %f\n", yj, yjp, ny[j]);
 			}
 		}
 
 	}
 
-	printf("spread y\n");
+	//printf("spread y\n");
 	*nx_h = nx;
 	*ny_h = ny;
 	return 0;
