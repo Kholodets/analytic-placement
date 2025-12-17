@@ -7,6 +7,8 @@ I may add more features to this project after the semester, but as of now what i
 
 **ASSUMPTIONS:** I used the canvas announcements list of assumptions to design the spreading part of the algorithm.
 That is to say, I consider cells as points and calculate utilization as such.
+I am also not normalizing bin utilization by their area.
+I am also only considering original moveable nodes in the spread function.
 
 ## Usage
 

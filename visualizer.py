@@ -12,7 +12,6 @@ for line in pref:
     prey = np.append(prey, float(elm[2]) )
     #print("x: ", float(elm[2]), "y: ", float(elm[4]))
 
-print(prex)
 
 postx = np.array([])
 posty = np.array([])

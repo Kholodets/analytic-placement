@@ -138,23 +138,23 @@ int free_Qd(float *Q, float *dx, float *dy)
 	return 0;
 }
 
-float calc_wirelength(float *Q, float *x, float *y, int n)
+float calc_wirelength(float *Q, float *x, float *y, int n, int stride)
 {
 	float sum = 0;
 	for (int i = 0; i < n; i++) {
 		for (int j = i + 1; j < n; j++) {
 			float dx = x[i] - x[j];
 			float dy = y[i] - y[j];
-			sum -= Q[i * n + j] * (dx * dx + dy * dy);
+			sum -= Q[i * stride + j] * (dx * dx + dy * dy);
 		}
 	}
 	return sqrt(sum);
 }
 
-int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, float a, float max_x, float max_y)
+int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, int all, float a, float max_x, float max_y)
 {
-	float *nx = (float *) malloc(sizeof(float) * n);
-	float *ny = (float *) malloc(sizeof(float) * n);
+	float *nx = (float *) malloc(sizeof(float) * all);
+	float *ny = (float *) malloc(sizeof(float) * all);
 
 	float U[25];
 	memset(U, 0.0f, sizeof(int) * 25);
@@ -167,9 +167,10 @@ int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, float a, flo
 		int xid = (int) (5.0f * ox[i] / max_x);
 		int yid = (int) (5.0f * oy[i] / max_y);
 
-		U[yid * 5 + xid] += 1.0f / ar;
+		U[yid * 5 + xid] += 1.0f; /* / ar  DO NOT NORMALIZE UTILIZATION*/;
 	}
 
+	
 	/*
 	for (int i = 0; i < 25; i++) {
 		printf("%f, ", U[i]);
@@ -177,7 +178,7 @@ int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, float a, flo
 			printf("\n");
 		}
 	}
-	*/
+	*/	
 	
 
 	//perform x spreading
@@ -222,7 +223,7 @@ int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, float a, flo
 
 	}
 
-	printf("spread x\n");
+	//printf("spread x\n");
 	
 	//perform y spreading
 	float yob[6];
@@ -371,7 +372,7 @@ int main(int argc, char **argv)
 	FILE *wirelength = fopen("wire_length.txt", "w");
 	FILE *pre = fopen("pre_spreading.txt", "w");
 	FILE *post = fopen("post_spreading.txt", "w");
-	float wl = calc_wirelength(Q, x, y, n);
+	float wl = calc_wirelength(Q, x, y, n, n);
 
 
 	print_out(x, y, n, pre);
@@ -383,10 +384,23 @@ int main(int argc, char **argv)
 	float *ys;
 
 
-	//int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, float a, float max_x, float max_y)
-	spread(x, y, &xs, &ys, n, 0.8, max_x, max_y);
+	//int spread(float *ox, float *oy, float **nx_h, float **ny_h, int n, int all, float a, float max_x, float max_y)
+	spread(x, y, &xs, &ys, numCells_noPads, n, 0.8, max_x, max_y);
+	//spread(x, y, &xs, &ys, numCells_noPads, 0.8, max_x, max_y);
+	//my intuition says that moving the star nodes would be useful, at least for this exercise
+	//however, i can see how you might want to ignore star models
+	//and for the sake of the correctness of the numbers of this output, I am not considering star nodes in the
+	//spread operation, thus passint numCells_noPads instead of n
+	
+	//passing a new value all to the spread function to tell it how long to alloc them
+	//this copies over the extra
+	for (int i = numCells_noPads; i < n; i++) {
+		xs[i] = x[i];
+		ys[i] = y[i];
+	}
 
-	float wls = calc_wirelength(Q, xs, ys, n);
+	float wls = calc_wirelength(Q, xs, ys, n, n);
+	//float wls = calc_wirelength(Q, xs, ys, numCells_noPads, n);
 
 	fprintf(wirelength, "after spreading: %f\n", wls);
 	print_out(xs, ys, n, post);
